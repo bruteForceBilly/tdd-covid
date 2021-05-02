@@ -1,5 +1,5 @@
 module.exports = {
-  collectCoverage: true,
+  collectCoverage: false,
   collectCoverageFrom: ["**/*.{js,vue}", "!**/node_modules/**"],
   preset: "@vue/cli-plugin-unit-jest",
   moduleFileExtensions: ["js", "json", "vue"],
