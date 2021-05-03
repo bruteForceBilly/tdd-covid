@@ -1,11 +1,11 @@
 import { configFactory, wrapperFactory } from './utils.js';
-import AppButton from "@/AppButton.vue";
+import AppButton from "@/components/AppButton.vue";
 let wrapper;
 
 beforeEach(() => {
     const config = {
         propsData: {
-            text: 'hello'
+            content: 'hello'
         }
     }
     wrapper = wrapperFactory(AppButton, configFactory(config));
@@ -20,15 +20,15 @@ describe("AppButton.vue", () => {
         expect(wrapper.isVueInstance).toBeTruthy();
     });
 
-    it("displays button label from prop text", () => {
+    it("displays content", () => {
         const button = wrapper.find('button')
         expect(button.text()).toBe('hello')
     });
 
-    it("does not render if prop text is empty", () => {
+    it("does not render if no content", () => {
         const config = {
             propsData: {
-                text: ''
+                content: ''
             }
         }
         wrapper = wrapperFactory(AppButton, configFactory(config));
@@ -36,31 +36,55 @@ describe("AppButton.vue", () => {
         expect(button.exists()).toBe(false)
     });
 
-    it("displays loading message when loading", () => {
+    it("displays loading animation when clicked if type submit", () => {
         const config = {
             propsData: {
-                text: 'hello',
-                loading: true,
-                loadingText: '…loading',
-            } 
+                content: 'hello',
+                type: 'submit'
+            }
         }
         wrapper = wrapperFactory(AppButton, configFactory(config));
         const button = wrapper.find('button');
-        expect(button.text()).toBe('…loading')
-    });
-
-    it("is selected when clicked", async () => {
-        wrapper.vm.isSelected = false;
-        const button = wrapper.find('button');
         button.trigger("click");
-        expect(wrapper.vm.isSelected).toBe(true)
-    });
+        button.
+    })
 
-    it("is deselected when it is selected and clicked", async () => {
-        wrapper.vm.isSelected = true;
-        const button = wrapper.find('button');
-        button.trigger("click");
-        expect(wrapper.vm.isSelected).toBe(false)
-    });
+    // clicking submit displays loading icon 
+    // sucess reponse from server hides loading animation
+
+
+
+    // it("has loading message when submitting", () => {
+    //     const config = {
+    //         propsData: {
+    //             content: 'hello',
+    //             loading: true,
+    //             loadingText: '…loading',
+    //         } 
+    //     }
+    //     wrapper = wrapperFactory(AppButton, configFactory(config));
+    //     const button = wrapper.find('button');
+    //     expect(button.text()).toBe('…submitting')
+    // });
+
+    // it("emits isSelected event when clicked", async () => {
+    //     const button = wrapper.find('button');
+    //     button.trigger("click");
+    //     expect(wrapper.emitted('isSelected')).toBeTruthy()
+    // });
+
+    // it("sets value attr from isSelected prop", async () => {
+    //     const config = {
+    //         propsData: {
+    //             name: 'hello',
+    //             isSelected: true
+    //         } 
+    //     }
+    //     wrapper = wrapperFactory(AppButton, configFactory(config));
+    //     const button = wrapper.find('button');
+    //     console.log(button.attributes())
+    //     expect(button.attributes('value')).toBe(true)
+    // });
+
 
 });
