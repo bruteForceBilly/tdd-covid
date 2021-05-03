@@ -3,7 +3,12 @@ import AppButton from "@/AppButton.vue";
 let wrapper;
 
 beforeEach(() => {
-    wrapper = wrapperFactory(AppButton, configFactory());
+    const config = {
+        propsData: {
+            text: 'hello'
+        }
+    }
+    wrapper = wrapperFactory(AppButton, configFactory(config));
 });
 
 afterEach(() => {
@@ -15,13 +20,7 @@ describe("AppButton.vue", () => {
         expect(wrapper.isVueInstance).toBeTruthy();
     });
 
-    it("renders button label from prop text", () => {
-        const config = {
-            propsData: {
-                text: 'hello'
-            }
-        }
-        wrapper = wrapperFactory(AppButton, configFactory(config));
+    it("displays button label from prop text", () => {
         const button = wrapper.find('button')
         expect(button.text()).toBe('hello')
     });
@@ -37,32 +36,31 @@ describe("AppButton.vue", () => {
         expect(button.exists()).toBe(false)
     });
 
+    it("displays loading message when loading", () => {
+        const config = {
+            propsData: {
+                text: 'hello',
+                loading: true,
+                loadingText: '…loading',
+            } 
+        }
+        wrapper = wrapperFactory(AppButton, configFactory(config));
+        const button = wrapper.find('button');
+        expect(button.text()).toBe('…loading')
+    });
 
-    // it("renders loading message when loading", () => {
-    //     const wrapper = wrapperFactory({
-    //         propsData: {
-    //             text: 'hello',
-    //             loading: true,
-    //             loadingText: '…loading',
-    //         } 
-    //     });
-    //     const button = wrapper.find('button');
-    //     expect(button.text()).toBe('…loading')
-    // });
+    it("is selected when clicked", async () => {
+        wrapper.vm.isSelected = false;
+        const button = wrapper.find('button');
+        button.trigger("click");
+        expect(wrapper.vm.isSelected).toBe(true)
+    });
 
-    // it("is selected when clicked", async () => {
-    //     const wrapper = wrapperFactory({
-    //         propsData: {
-    //             text: 'hello',
-    //         } 
-    //     });
-        
-    //     await wrapper.vm
-        
-    //     //await wrapper.setData({ isSelected: false });
-    //     const button = wrapper.find('button');
-    //     button.trigger("click");
-    //     expect(wrapper.vm.isSelected).toBe(true)
-    // });
+    it("is deselected when it is selected and clicked", async () => {
+        wrapper.vm.isSelected = true;
+        const button = wrapper.find('button');
+        button.trigger("click");
+        expect(wrapper.vm.isSelected).toBe(false)
+    });
 
 });
