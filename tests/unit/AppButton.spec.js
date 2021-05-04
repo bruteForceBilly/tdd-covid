@@ -1,5 +1,5 @@
 import { configFactory, wrapperFactory } from './utils.js';
-import AppButton from "@/components/AppButton.vue";
+import AppButton from "@/components/App/AppButton.vue";
 let wrapper;
 
 beforeEach(() => {
