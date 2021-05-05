@@ -1,27 +1,14 @@
 <template>
   <div>
-    <SubmitButton @click.native.prevent="formSubmitHandler" />
+    <Form />
   </div>
 </template>
 <script>
-import SubmitButton from "@/components/SubmitButton.vue";
-
+import Form from "./components/Form.vue";
 export default {
+  name: "Home",
   components: {
-    SubmitButton,
-  },
-  methods: {
-    formSubmitHandler() {
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          if (Math.random() >= 0.5) {
-            resolve();
-          } else {
-            reject(new Error("Oops"));
-          }
-        }, 1500);
-      });
-    },
+    Form,
   },
 };
 </script>
