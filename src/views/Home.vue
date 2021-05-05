@@ -1,6 +1,6 @@
 <template>
   <div>
-    <SubmitButton @click.prevent="formSubmitHandler"/>
+    <SubmitButton @click.native.prevent="formSubmitHandler" />
   </div>
 </template>
 <script>
@@ -22,7 +22,6 @@ export default {
         }, 1500);
       });
     },
-  }
+  },
 };
 </script>
-

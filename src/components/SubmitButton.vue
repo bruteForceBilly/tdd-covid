@@ -1,20 +1,37 @@
 <template>
   <div>
-    <AppButton content="submit" type="submit" v-on:submit="submitHandler" />
+    <AppButton :content="content" type="submit">
+      <AppIcon v-if="isLoading">
+        <AppIconLoading :isAnimating="isLoading" />
+      </AppIcon>
+    </AppButton>
   </div>
 </template>
 <script>
 import AppButton from "@/components/App/AppButton.vue";
-
-// Idle / Working - Pending / Sucsess - Fulfilled / Rejected - Error
-// Disabled
-// Hover
-// Focused
-// Active / Pressed
+import AppIcon from "@/components/App/AppIcon.vue";
+import AppIconLoading from "@/components/App/AppIconLoading.vue";
 
 export default {
+  inheritAttrs: false,
   components: {
     AppButton,
+    AppIcon,
+    AppIconLoading,
+  },
+  props: {
+    content: {
+      type: String,
+      default: "Submit",
+    },
+    time: {
+      type: Number,
+      default: 2000,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
   },
   data: () => ({
     isLoading: false,
@@ -25,23 +42,46 @@ export default {
     listeners() {
       return {
         ...this.$listeners,
-        submit: this.handleSubmit,
+        click: this.handleClick,
       };
+    },
+    computedClasses() {
+      return {
+        "is-danger": this.hasError,
+        "is-success": this.isSuccess,
+        "is-loading": this.loadingState,
+      };
+    },
+    loadingState() {
+      return this.loading || this.isLoading;
     },
   },
   methods: {
-    async submitHandler() {
+    async handleClick() {
       try {
         this.isLoading = true;
         // eslint-disable-next-line
         await this.$listeners.click(e);
-        this.resetDelayeatrd("isSuccess");
+        this.resetDelayed("isSuccess");
       } catch (error) {
         this.resetDelayed("hasError");
       } finally {
         this.isLoading = true;
       }
     },
+    resetDelayed(property) {
+      // eslint-disable-next-line
+      if (this.$options.propsData.hasOwnProperty("loading")) {
+        return;
+      }
+      this[property] = true;
+      setTimeout(() => {
+        this[property] = false;
+      }, this.time);
+    },
+  },
+  mounted() {
+    console.log("listeners", this.listeners);
   },
 };
 </script>

@@ -1,55 +1,31 @@
 <template>
-    <div v-if="content">
-        <button :type="type" :name="name" :value="value" @click="emitTypeHandler">
-            {{ content }}
-             <AppIcon v-if="isLoading">
-                <AppIconLoading :isAnimating="isLoading"/>
-            </AppIcon>
-        </button>
-    </div>
+  <div v-if="content">
+    <button :type="type" :name="name" :value="value">
+      {{ content }}
+      <slot></slot>
+    </button>
+  </div>
 </template>
 
 <script>
-import AppIcon from '@/components/App/AppIcon.vue';
-import AppIconLoading from '@/components/App/AppIconLoading.vue'
-
-// Idle / Working / Success / Error 
-// Disabled
-// Hover
-// Focused
-// Active / Pressed
-
 export default {
-    inheritAttrs: false,
-    name: "AppButton",
-    components: {
-        AppIcon,
-        AppIconLoading
+  name: "AppButton",
+  props: {
+    content: {
+      type: String,
     },
-    props: {
-        content: {
-            type: String,
-        },
-        isLoading: {
-            type: String,
-        },
-        name: {
-            type: String,
-        },
-        value: {
-            type: String,
-        },
-        type: {
-            type: String,
-            validator: function (value) {
-                return ['submit', 'reset', 'button'].indexOf(value) !== -1
-            }
-        }
+    name: {
+      type: String,
     },
-    methods: {
-        emitTypeHandler() {
-            return this.$emit(this.type)
-        }
+    value: {
+      type: String,
     },
-}
+    type: {
+      type: String,
+      validator: function (value) {
+        return ["submit", "reset", "button"].indexOf(value) !== -1;
+      },
+    },
+  },
+};
 </script>
