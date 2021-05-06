@@ -4,4 +4,4 @@
   "useTabs": false,
   "trailingComma": "none",
   "printWidth": 80
-}
+};

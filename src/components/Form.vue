@@ -1,5 +1,10 @@
 <template>
-  <div>Hello this is form!</div>
+  <div>
+    Hello this is form!
+    <form>
+      <fieldset name="contact"></fieldset>
+    </form>
+  </div>
 </template>
 
 <script>
