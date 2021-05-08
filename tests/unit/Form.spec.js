@@ -52,12 +52,38 @@ describe("Form.vue", () => {
 
     await wrapper.setData({ firstName: "x" });
 
-    expect(wrapper.find(".message").text()).toContain(
-      "Error: First Name is too short"
+    expect(wrapper.find(".firstNameError").text()).toContain(
+      "Error: First name is too short"
     );
 
     await wrapper.setData({ firstName: "xxx" });
 
-    expect(wrapper.find(".message").exists()).toBe(false);
+    expect(wrapper.find(".firstNameError").exists()).toBe(false);
+  });
+
+  it("Error displays if last name text length is < 2", async () => {
+    config = {
+      data() {
+        return {
+          lastName: "",
+        };
+      },
+    };
+
+    wrapper = wrapperFactory(Form, configFactory(config));
+
+    const lastNameInput = wrapper.find(
+      "fieldset[name='contact'] #last-name[type='text']"
+    );
+
+    await wrapper.setData({ firstName: "x" });
+
+    expect(wrapper.find(".lastNameError").text()).toContain(
+      "Error: Last name is too short"
+    );
+
+    await wrapper.setData({ lastName: "xxx" });
+
+    expect(wrapper.find(".lastNameError").exists()).toBe(false);
   });
 });
