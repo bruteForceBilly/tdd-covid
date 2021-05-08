@@ -50,10 +50,14 @@ describe("Form.vue", () => {
       "fieldset[name='contact'] #first-name[type='text']"
     );
 
-    await firstNameInput.setValue("x");
+    await wrapper.setData({ firstName: "x" });
 
-    const message = wrapper.find(".message");
+    expect(wrapper.find(".message").text()).toContain(
+      "Error: First Name is too short"
+    );
 
-    expect(message.text()).toBe("Error: First Name required to short");
+    await wrapper.setData({ firstName: "xxx" });
+
+    expect(wrapper.find(".message").exists()).toBe(false);
   });
 });

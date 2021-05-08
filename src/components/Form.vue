@@ -1,9 +1,8 @@
 <template>
   <div>
-    Hello this is form!
-    <span class="message" v-if="firstNameError"
-      >Error: First Name required to short</span
-    >
+    <span class="message" v-if="firstNameError">
+      Error: First Name is too short
+    </span>
 
     <form>
       <fieldset name="contact">
@@ -20,7 +19,7 @@ export default {
   name: "Form",
   data() {
     return {
-      firstName: "",
+      firstName: "x",
     };
   },
   computed: {
