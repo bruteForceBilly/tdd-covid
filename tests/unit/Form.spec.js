@@ -86,4 +86,8 @@ describe("Form.vue", () => {
 
     expect(wrapper.find(".lastNameError").exists()).toBe(false);
   });
+
+  // Error should not be shown if user has not yet interacted
+
+  // special charachter not allowed in first name and last name
 });

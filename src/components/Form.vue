@@ -1,10 +1,10 @@
 <template>
-  <div>
-    <span class="firstNameError" v-if="firstNameError">
+  <div @input="log($event)">
+    <span class="firstNameError" v-if="firstNameTooShortError">
       Error: First name is too short
     </span>
 
-    <span class="lastNameError" v-if="lastNameError">
+    <span class="lastNameError" v-if="lastNameTooShortError">
       Error: Last name is too short
     </span>
 
@@ -18,21 +18,45 @@
 </template>
 
 <script>
+// @input="validate($event)"
+
+// @error="alert($event.target.value)"
+
+// v-bind instead of v-model
+
 export default {
   name: "Form",
   data() {
     return {
-      errors: [],
-      firstName: "",
-      lastName: "",
+      firstName: null,
+      lastName: null,
     };
   },
   computed: {
-    firstNameError() {
-      return this.firstName.length < 2 ? true : false;
+    firstNameTooShortError() {
+      let res = null;
+
+      if (this.firstName != null) {
+        this.firstName.length < 2 && this.firstName.length >= 1
+          ? (res = true)
+          : (res = false);
+      }
+      return res;
     },
-    lastNameError() {
-      return this.lastName.length < 2 ? true : false;
+    lastNameTooShortError() {
+      let res = null;
+
+      if (this.lastName != null) {
+        this.lastName.length < 2 && this.lastName.length >= 1
+          ? (res = true)
+          : (res = false);
+      }
+      return res;
+    },
+  },
+  methods: {
+    log(e) {
+      console.log(e.target.value, this._data);
     },
   },
 };
