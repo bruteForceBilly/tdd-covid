@@ -1,62 +1,100 @@
 <template>
-  <div @input="log($event)">
-    <span class="firstNameError" v-if="firstNameTooShortError">
-      Error: First name is too short
-    </span>
-
-    <span class="lastNameError" v-if="lastNameTooShortError">
-      Error: Last name is too short
-    </span>
-
+  <div>
     <form>
       <fieldset name="contact">
-        <input type="text" id="first-name" v-model="firstName" />
-        <input type="text" id="last-name" v-model="lastName" />
+        <input
+          type="text"
+          id="first-name"
+          v-model="firstName"
+          @input="validator($event)"
+        />
+        {{ firstNameErrors }}
+        <br />
+        <input
+          type="text"
+          id="last-name"
+          v-model="lastName"
+          @input="validator($event)"
+        />
+        {{ lastNameErrors }}
+        <br />
       </fieldset>
     </form>
   </div>
 </template>
 
 <script>
-// @input="validate($event)"
-
-// @error="alert($event.target.value)"
-
-// v-bind instead of v-model
-
 export default {
   name: "Form",
   data() {
     return {
+      errors: [],
+      errorMessages: {
+        tooShort: (name) => `${name} is too short`,
+        specialCharacter: (name) => `${name} has unallowed special characters`,
+      },
       firstName: null,
       lastName: null,
     };
   },
   computed: {
-    firstNameTooShortError() {
-      let res = null;
-
-      if (this.firstName != null) {
-        this.firstName.length < 2 && this.firstName.length >= 1
-          ? (res = true)
-          : (res = false);
-      }
-      return res;
+    firstNameErrors() {
+      let filtered = this.errors.filter((err) => err.includes("first name"));
+      return filtered;
     },
-    lastNameTooShortError() {
-      let res = null;
-
-      if (this.lastName != null) {
-        this.lastName.length < 2 && this.lastName.length >= 1
-          ? (res = true)
-          : (res = false);
-      }
-      return res;
+    lastNameErrors() {
+      let filtered = this.errors.filter((err) => err.includes("last name"));
+      return filtered;
     },
   },
   methods: {
-    log(e) {
-      console.log(e.target.value, this._data);
+    validator(e) {
+      const { id, value } = e.target;
+      const fields = {
+        "first-name": () => {
+          this.errorTooShort(value)
+            ? this.addError(this.errorMessages.tooShort("first name"))
+            : this.deleteError(this.errorMessages.tooShort("first name"));
+          this.errorHasSpecialCharacter(value)
+            ? this.addError(this.errorMessages.specialCharacter("first name"))
+            : this.deleteError(
+                this.errorMessages.specialCharacter("first name")
+              );
+        },
+        "last-name": () => {
+          this.errorTooShort(value)
+            ? this.addError(this.errorMessages.tooShort("last name"))
+            : this.deleteError(this.errorMessages.tooShort("last name"));
+          this.errorHasSpecialCharacter(value)
+            ? this.addError(this.errorMessages.specialCharacter("last name"))
+            : this.deleteError(
+                this.errorMessages.specialCharacter("last name")
+              );
+        },
+      };
+      return fields[id]();
+    },
+    addError(err) {
+      if (!this.errors.find((cv) => cv == err)) {
+        this.errors.push(err);
+      }
+    },
+    deleteError(err) {
+      return (this.errors = this.errors.filter((cv) => !cv.includes(err)));
+    },
+    errorTooShort(value) {
+      let res = null;
+      if (value != null) {
+        value.length < 2 && value.length >= 1 ? (res = true) : (res = false);
+      }
+      return res;
+    },
+    errorHasSpecialCharacter(value) {
+      let res = null;
+      if (value.includes("#")) {
+        res = true;
+      }
+      return res;
     },
   },
 };

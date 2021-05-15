@@ -14,21 +14,21 @@ afterEach(() => {
 });
 
 describe("Form.vue", () => {
-  it("is a Vvue instance", () => {
+  it("Is a Vvue instance", () => {
     expect(wrapper.isVueInstance).toBeTruthy();
   });
 
-  it("has a form element", () => {
+  it("Has a form element", () => {
     const form = wrapper.find("form");
     expect(form.exists()).toBe(true);
   });
 
-  it("has a fieldset named contact", () => {
+  it("Has a fieldset named contact", () => {
     const contactFieldset = wrapper.find("fieldset[name='contact']");
     expect(contactFieldset.exists()).toBe(true);
   });
 
-  it("has contact field with first name input", () => {
+  it("Has contact field with first name input", () => {
     const firstNameInput = wrapper.find(
       "fieldset[name='contact'] #first-name[type='text']"
     );
@@ -45,10 +45,6 @@ describe("Form.vue", () => {
     };
 
     wrapper = wrapperFactory(Form, configFactory(config));
-
-    const firstNameInput = wrapper.find(
-      "fieldset[name='contact'] #first-name[type='text']"
-    );
 
     await wrapper.setData({ firstName: "x" });
 
@@ -72,11 +68,7 @@ describe("Form.vue", () => {
 
     wrapper = wrapperFactory(Form, configFactory(config));
 
-    const lastNameInput = wrapper.find(
-      "fieldset[name='contact'] #last-name[type='text']"
-    );
-
-    await wrapper.setData({ firstName: "x" });
+    await wrapper.setData({ lastName: "x" });
 
     expect(wrapper.find(".lastNameError").text()).toContain(
       "Error: Last name is too short"
@@ -87,7 +79,31 @@ describe("Form.vue", () => {
     expect(wrapper.find(".lastNameError").exists()).toBe(false);
   });
 
-  // Error should not be shown if user has not yet interacted
+  it("Too short name errors does not show input error if user has not yet interacted", () => {
+    const firstNameError = wrapper.find("firstNameError");
+    expect(firstNameError.exists()).toBe(false);
+    const lastNameError = wrapper.find("lastNameError");
+    expect(lastNameError.exists()).toBe(false);
+  });
 
-  // special charachter not allowed in first name and last name
+  it("Does not allow special charachters in name inputs", () => {
+    config = {
+      data() {
+        return {
+          firstName: "xxx#",
+          lastName: "xxx#",
+        };
+      },
+    };
+
+    wrapper = wrapperFactory(Form, configFactory(config));
+
+    expect(wrapper.find(".firstNameHasSpecialCharacterError").text()).toContain(
+      "Error: Special character not allowed in first name"
+    );
+
+    expect(wrapper.find(".lastNameHasSpecialCharacterError").text()).toContain(
+      "Error: Special character not allowed in last name"
+    );
+  });
 });
