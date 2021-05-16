@@ -2,13 +2,20 @@
   <div>
     <form>
       <fieldset name="contact">
+        <legend>Contact information</legend>
+        <label for="first-name"> First name </label>
+        <br />
         <input
           type="text"
           id="first-name"
           v-model="firstName"
           @input="validator($event)"
         />
-        {{ firstNameErrors }}
+        <label v-if="firstNameErrors" for="first-name" class="error">{{
+          firstNameErrors
+        }}</label>
+        <br />
+        <label for="last-name"> Last name </label>
         <br />
         <input
           type="text"
@@ -16,7 +23,9 @@
           v-model="lastName"
           @input="validator($event)"
         />
-        {{ lastNameErrors }}
+        <label v-if="lastNameErrors" for="last-name" class="error">{{
+          lastNameErrors
+        }}</label>
         <br />
       </fieldset>
     </form>
@@ -24,6 +33,10 @@
 </template>
 
 <script>
+// name special charachter full regex
+// email
+// phone number
+
 export default {
   name: "Form",
   data() {
@@ -39,40 +52,44 @@ export default {
   },
   computed: {
     firstNameErrors() {
-      let filtered = this.errors.filter((err) => err.includes("first name"));
-      return filtered;
+      let filtered = this.errors.filter((err) => err.includes("First name"));
+      return filtered.toString();
     },
     lastNameErrors() {
-      let filtered = this.errors.filter((err) => err.includes("last name"));
-      return filtered;
+      let filtered = this.errors.filter((err) => err.includes("Last name"));
+      return filtered.toString();
     },
   },
   methods: {
     validator(e) {
       const { id, value } = e.target;
+
       const fields = {
         "first-name": () => {
-          this.errorTooShort(value)
-            ? this.addError(this.errorMessages.tooShort("first name"))
-            : this.deleteError(this.errorMessages.tooShort("first name"));
-          this.errorHasSpecialCharacter(value)
-            ? this.addError(this.errorMessages.specialCharacter("first name"))
-            : this.deleteError(
-                this.errorMessages.specialCharacter("first name")
-              );
+          this.handleError(
+            this.errorTooShort(value),
+            this.errorMessages.tooShort("First name")
+          );
+          this.handleError(
+            this.errorHasSpecialCharacter(value),
+            this.errorMessages.specialCharacter("First name")
+          );
         },
         "last-name": () => {
-          this.errorTooShort(value)
-            ? this.addError(this.errorMessages.tooShort("last name"))
-            : this.deleteError(this.errorMessages.tooShort("last name"));
-          this.errorHasSpecialCharacter(value)
-            ? this.addError(this.errorMessages.specialCharacter("last name"))
-            : this.deleteError(
-                this.errorMessages.specialCharacter("last name")
-              );
+          this.handleError(
+            this.errorTooShort(value),
+            this.errorMessages.tooShort("Last name")
+          );
+          this.handleError(
+            this.errorHasSpecialCharacter(value),
+            this.errorMessages.specialCharacter("Last name")
+          );
         },
       };
       return fields[id]();
+    },
+    handleError(errCheckFn, errMsg) {
+      return errCheckFn ? this.addError(errMsg) : this.deleteError(errMsg);
     },
     addError(err) {
       if (!this.errors.find((cv) => cv == err)) {
