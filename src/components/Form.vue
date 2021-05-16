@@ -108,7 +108,9 @@ export default {
     },
     errorHasSpecialCharacter(value) {
       let res = null;
-      if (value.includes("#")) {
+      let regex = new RegExp(/[^a-zA-Z\x7f-\xff]/g);
+
+      if (regex.test(value)) {
         res = true;
       }
       return res;
