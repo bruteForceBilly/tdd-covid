@@ -58,8 +58,7 @@ export default {
       errorMessages: {
         missingString: (target, string) => `${target} is missing ${string}`,
         tooShort: (stringValue) => `${stringValue} is too short`,
-        specialCharacter: (stringValue) =>
-          `${stringValue} has unallowed special characters`,
+        illegalCharacter: (target) => `${target} has unallowed characters`,
       },
       email: null,
       firstName: null,
@@ -92,12 +91,25 @@ export default {
           );
 
           this.handleError(
-            this.errorMissingString(value, /(?<=((?<=@)[^.]+(?=\.))).+\w/),
-            this.errorMessages.missingString(
-              "Email address",
-              "top level domain"
-            )
+            this.errorMissingString(value, /((?<=@)[^.]+(?=\.))/),
+            this.errorMessages.missingString("Email address", "domain name")
           );
+
+          // this.handleError(
+          //   this.errorMissingString(value, /(?<=((?<=@)[^.]+(?=\.))).+\w/),
+          //   this.errorMessages.missingString(
+          //     "Email address",
+          //     "top level domain"
+          //   )
+          // );
+
+          // Regex to get domain name from email adress
+          // let emailAddressDomain = value.match(/(?<=@)[^.]+(?=\.)/);
+
+          // this.handleError(
+          //   this.errorIllegalCharacter(value, /_/),
+          //   this.errorMessages.illegalCharacter("Email")
+          // );
         },
         "first-name": () => {
           this.handleError(
@@ -105,8 +117,8 @@ export default {
             this.errorMessages.tooShort("First name")
           );
           this.handleError(
-            this.errorHasSpecialCharacter(value),
-            this.errorMessages.specialCharacter("First name")
+            this.errorIllegalCharacter(value, /[^a-zA-Z\x7f-\xff]/g),
+            this.errorMessages.illegalCharacter("First name")
           );
         },
         "last-name": () => {
@@ -115,8 +127,8 @@ export default {
             this.errorMessages.tooShort("Last name")
           );
           this.handleError(
-            this.errorHasSpecialCharacter(value),
-            this.errorMessages.specialCharacter("Last name")
+            this.errorIllegalCharacter(value, /[^a-zA-Z\x7f-\xff]/g),
+            this.errorMessages.illegalCharacter("Last name")
           );
         },
       };
@@ -149,11 +161,11 @@ export default {
       }
       return res;
     },
-    errorHasSpecialCharacter(value) {
+    errorIllegalCharacter(value, q) {
       let res = null;
-      let regex = new RegExp(/[^a-zA-Z\x7f-\xff]/g);
+      let r = new RegExp(q);
 
-      if (regex.test(value)) {
+      if (r.test(value)) {
         res = true;
       }
       return res;

@@ -69,13 +69,13 @@ describe("Contact field inputs for name", () => {
     await wrapper.find("#first-name").setValue("xx#");
 
     expect(wrapper.find("label[for='first-name'].error").text()).toContain(
-      "First name has unallowed special characters"
+      "First name has unallowed characters"
     );
 
     await wrapper.find("#last-name").setValue("xx#");
 
     expect(wrapper.find("label[for='last-name'].error").text()).toContain(
-      "Last name has unallowed special characters"
+      "Last name has unallowed characters"
     );
   });
 });
@@ -84,19 +84,42 @@ describe("Contact field input for email", () => {
   it("Has email input field", () => {
     expect(wrapper.find("#email").exists()).toBe(true);
   });
+
   it("Display error if email adress has no @ charachter", async () => {
-    await wrapper.find("#email").setValue("xxxx");
+    await wrapper.find("#email").setValue("hello");
     expect(wrapper.find("label[for='email'].error").text()).toContain(
       "Email address is missing @"
     );
   });
-  it("Display error if email adress has no top level domain", async () => {
-    await wrapper.find("#email").setValue("xxxx@");
+
+  it("Display error if email adress has no domain name", async () => {
+    await wrapper.find("#email").setValue("hello@.com");
     expect(wrapper.find("label[for='email'].error").text()).toContain(
-      "Email address is missing top level domain"
+      "Email address is missing domain name"
     );
   });
+
+  // it("Display error if email adress has no top level domain", async () => {
+  //   await wrapper.find("#email").setValue("hello@world");
+  //   expect(wrapper.find("label[for='email'].error").text()).toContain(
+  //     "Email address is missing top level domain"
+  //   );
+  // });
+
+  // Displays error if email adress has tld but not domain name
+
   // Displays error if underscores is present in domain
+  // it("Display error if email adress has underscore in domain name", async () => {
+  //   await wrapper.find("#email").setValue("hello@test_test.com");
+  //   expect(wrapper.find("label[for='email'].error").text()).toContain(
+  //     "Email address has unallowed characters"
+  //   );
+  // });
+
+  // An email address must not accept white spaces
+  // An email address must not end in a dot or a character other than a letter or a number
+  // Only one @ sign is allowed
+  // You can not enter two or more dots in a row in the username
 
   // Displays error if email adress has no local-part
 
