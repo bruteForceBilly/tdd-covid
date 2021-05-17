@@ -3,6 +3,7 @@
     <form>
       <fieldset name="contact">
         <legend>Contact information</legend>
+
         <label for="first-name"> First name </label>
         <br />
         <input
@@ -15,6 +16,7 @@
           firstNameErrors
         }}</label>
         <br />
+
         <label for="last-name"> Last name </label>
         <br />
         <input
@@ -27,13 +29,24 @@
           lastNameErrors
         }}</label>
         <br />
+
+        <label for="email"> Email </label>
+        <br />
+        <input
+          type="text"
+          id="email"
+          v-model="email"
+          @input="validator($event)"
+        />
+        <label v-if="emailErrors" for="email" class="error">{{
+          emailErrors
+        }}</label>
       </fieldset>
     </form>
   </div>
 </template>
 
 <script>
-// name special charachter full regex
 // email
 // phone number
 
@@ -43,14 +56,21 @@ export default {
     return {
       errors: [],
       errorMessages: {
-        tooShort: (name) => `${name} is too short`,
-        specialCharacter: (name) => `${name} has unallowed special characters`,
+        missingString: (target, string) => `${target} is missing ${string}`,
+        tooShort: (stringValue) => `${stringValue} is too short`,
+        specialCharacter: (stringValue) =>
+          `${stringValue} has unallowed special characters`,
       },
+      email: null,
       firstName: null,
       lastName: null,
     };
   },
   computed: {
+    emailErrors() {
+      let filtered = this.errors.filter((err) => err.includes("Email"));
+      return filtered.toString();
+    },
     firstNameErrors() {
       let filtered = this.errors.filter((err) => err.includes("First name"));
       return filtered.toString();
@@ -65,6 +85,20 @@ export default {
       const { id, value } = e.target;
 
       const fields = {
+        email: () => {
+          this.handleError(
+            this.errorMissingString(value, /@/),
+            this.errorMessages.missingString("Email address", "@")
+          );
+
+          this.handleError(
+            this.errorMissingString(value, /(?<=((?<=@)[^.]+(?=\.))).+\w/),
+            this.errorMessages.missingString(
+              "Email address",
+              "top level domain"
+            )
+          );
+        },
         "first-name": () => {
           this.handleError(
             this.errorTooShort(value),
@@ -98,6 +132,15 @@ export default {
     },
     deleteError(err) {
       return (this.errors = this.errors.filter((cv) => !cv.includes(err)));
+    },
+    errorMissingString(value, q) {
+      let res = null;
+      let r = new RegExp(q);
+
+      if (value.length > 0) {
+        res = !r.test(value);
+      }
+      return res;
     },
     errorTooShort(value) {
       let res = null;
