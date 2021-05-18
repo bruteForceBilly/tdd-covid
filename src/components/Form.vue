@@ -51,7 +51,8 @@
 const regex = {
   AT_SYMBOL: /@/,
   DOMAIN: /(?<=@)[^.]+(?=\.|(?=$))/,
-  TLD: /(\.+\w+)?(\.+\w+)$/, // tld selects world from hello@world, fix bug!
+  LOCAL: /(^\w+\.+\w+)|(^\w+)/,
+  TLD: /(\.+\w+)?(\.+\w+)$/,
   SPECIAL: /[^a-zA-Z\x7f-\xff]/g,
 };
 
@@ -110,6 +111,11 @@ export default {
               "top level domain"
             )
           );
+
+          this.handleError(
+            this.errorMissingString(value, this.r.LOCAL),
+            this.errorMessages.missingString("Email address", "local part")
+          );
         },
         "first-name": () => {
           this.handleError(
@@ -152,6 +158,7 @@ export default {
       if (value.length > 0) {
         res = !r.test(value);
       }
+
       return res;
     },
     errorTooShort(value) {

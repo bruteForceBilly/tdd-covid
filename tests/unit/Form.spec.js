@@ -106,28 +106,29 @@ describe("Contact field input for email", () => {
     );
   });
 
-  // Displays error if email adress has tld but not domain name
+  // Displays error if email adress has no local-part
+  it("Display error if email adress has no local part", async () => {
+    await wrapper.find("#email").setValue("@world.com");
+    expect(wrapper.find("label[for='email'].error").text()).toContain(
+      "Email address is missing local part"
+    );
+  });
+
+  // Displays error if address has white spaces
 
   // Displays error if underscores is present in domain
-  // it("Display error if email adress has underscore in domain name", async () => {
-  //   await wrapper.find("#email").setValue("hello@test_test.com");
-  //   expect(wrapper.find("label[for='email'].error").text()).toContain(
-  //     "Email address has unallowed characters"
-  //   );
-  // });
 
-  // An email address must not accept white spaces
-  // An email address must not end in a dot or a character other than a letter or a number
-  // Only one @ sign is allowed
-  // You can not enter two or more dots in a row in the username
+  // Displays error if more than @ symbols
 
-  // Displays error if email adress has no local-part
+  // Displays error if email ends in a dot or any special charachter
 
-  // Display error if two consecutive dots (for local & domain)
+  // Displays error if email starts with dot
 
-  // Qouted strings only allowed in local-part
+  // Displays error if two or more dots in a row
+
+  // Displays error if qouted strings in domain
 
   // Displays error if invalid charachters occurs outside qoutation marks
 
-  // It displays error if local part is longer than 64 charachters
+  // Displays error if local part is longer than 64 charachters
 });
