@@ -99,12 +99,12 @@ describe("Contact field input for email", () => {
     );
   });
 
-  // it("Display error if email adress has no top level domain", async () => {
-  //   await wrapper.find("#email").setValue("hello@world");
-  //   expect(wrapper.find("label[for='email'].error").text()).toContain(
-  //     "Email address is missing top level domain"
-  //   );
-  // });
+  it("Display error if email adress has no top level domain", async () => {
+    await wrapper.find("#email").setValue("hello@world");
+    expect(wrapper.find("label[for='email'].error").text()).toContain(
+      "Email address is missing top level domain"
+    );
+  });
 
   // Displays error if email adress has tld but not domain name
 

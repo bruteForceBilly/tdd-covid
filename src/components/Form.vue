@@ -47,12 +47,11 @@
 </template>
 
 <script>
-// email
-// phone number
+// move to mixin later
 const regex = {
   AT_SYMBOL: /@/,
-  DOMAIN: /((?<=@)[^.]+(?=\.))/,
-  TLD: /(\w+\.?\w+)$/,
+  DOMAIN: /(?<=@)[^.]+(?=\.|(?=$))/,
+  TLD: /(\.+\w+)?(\.+\w+)$/, // tld selects world from hello@world, fix bug!
   SPECIAL: /[^a-zA-Z\x7f-\xff]/g,
 };
 
@@ -104,21 +103,13 @@ export default {
             this.errorMessages.missingString("Email address", "domain name")
           );
 
-          // this.handleError(
-          //   this.errorMissingString(value, /(?<=((?<=@)[^.]+(?=\.))).+\w/),
-          //   this.errorMessages.missingString(
-          //     "Email address",
-          //     "top level domain"
-          //   )
-          // );
-
-          // Regex to get domain name from email adress
-          // let emailAddressDomain = value.match(/(?<=@)[^.]+(?=\.)/);
-
-          // this.handleError(
-          //   this.errorIllegalCharacter(value, /_/),
-          //   this.errorMessages.illegalCharacter("Email")
-          // );
+          this.handleError(
+            this.errorMissingString(value, this.r.TLD),
+            this.errorMessages.missingString(
+              "Email address",
+              "top level domain"
+            )
+          );
         },
         "first-name": () => {
           this.handleError(
