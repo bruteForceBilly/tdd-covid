@@ -49,6 +49,14 @@
 <script>
 // email
 // phone number
+const regex = {
+  AT_SYMBOL: /@/,
+  DOMAIN: /((?<=@)[^.]+(?=\.))/,
+  TLD: /(\w+\.?\w+)$/,
+  SPECIAL: /[^a-zA-Z\x7f-\xff]/g,
+};
+
+Object.freeze(regex);
 
 export default {
   name: "Form",
@@ -63,6 +71,7 @@ export default {
       email: null,
       firstName: null,
       lastName: null,
+      r: regex,
     };
   },
   computed: {
@@ -86,12 +95,12 @@ export default {
       const fields = {
         email: () => {
           this.handleError(
-            this.errorMissingString(value, /@/),
+            this.errorMissingString(value, this.r.AT_SYMBOL),
             this.errorMessages.missingString("Email address", "@")
           );
 
           this.handleError(
-            this.errorMissingString(value, /((?<=@)[^.]+(?=\.))/),
+            this.errorMissingString(value, this.r.DOMAIN),
             this.errorMessages.missingString("Email address", "domain name")
           );
 
@@ -117,7 +126,7 @@ export default {
             this.errorMessages.tooShort("First name")
           );
           this.handleError(
-            this.errorIllegalCharacter(value, /[^a-zA-Z\x7f-\xff]/g),
+            this.errorIllegalCharacter(value, this.r.SPECIAL),
             this.errorMessages.illegalCharacter("First name")
           );
         },
@@ -127,7 +136,7 @@ export default {
             this.errorMessages.tooShort("Last name")
           );
           this.handleError(
-            this.errorIllegalCharacter(value, /[^a-zA-Z\x7f-\xff]/g),
+            this.errorIllegalCharacter(value, this.r.SPECIAL),
             this.errorMessages.illegalCharacter("Last name")
           );
         },
