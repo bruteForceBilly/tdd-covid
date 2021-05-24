@@ -9,7 +9,7 @@
         <input
           type="text"
           id="first-name"
-          v-model="firstName"
+          v-model.trim="firstName"
           @input="validator($event)"
         />
         <label v-if="firstNameErrors" for="first-name" class="error">{{
@@ -22,7 +22,7 @@
         <input
           type="text"
           id="last-name"
-          v-model="lastName"
+          v-model.trim="lastName"
           @input="validator($event)"
         />
         <label v-if="lastNameErrors" for="last-name" class="error">{{
@@ -35,7 +35,7 @@
         <input
           type="text"
           id="email"
-          v-model="email"
+          v-model.trim="email"
           @input="validator($event)"
         />
         <label v-if="emailErrors" for="email" class="error">{{
@@ -50,10 +50,16 @@
 // move to mixin later
 const regex = {
   AT_SYMBOL: /@/,
+  AT_SYMBOLS_MULTIPLE: /@.*?(@)/,
   DOMAIN: /(?<=@)[^.]+(?=\.|(?=$))/,
-  LOCAL: /(^\w+\.+\w+)|(^\w+)/,
-  TLD: /(\.+\w+)?(\.+\w+)$/,
+  DOT: /\./,
+  CONSECUTIVE_DOTS: /\.\./,
+  LOCAL: /(?<!@)^(\w+|\.)+/,
+  UNDERSCORE: /_/,
   SPECIAL: /[^a-zA-Z\x7f-\xff]/g,
+  TLD: /(\.+\w+)?(\.+\w+)/,
+  WHITE_SPACE: /\s/,
+  QUOTATION_MARKS: /'|"/,
 };
 
 Object.freeze(regex);
@@ -66,7 +72,11 @@ export default {
       errorMessages: {
         missingString: (target, string) => `${target} is missing ${string}`,
         tooShort: (stringValue) => `${stringValue} is too short`,
-        illegalCharacter: (target) => `${target} has unallowed characters`,
+        tooLong: (stringValue) => `${stringValue} is too long`,
+        illegalCharacter: (target, string = null) =>
+          string != null
+            ? `${target} has unallowed characters: ${string}`
+            : `${target} has unallowed characters`,
       },
       email: null,
       firstName: null,
@@ -87,11 +97,21 @@ export default {
       let filtered = this.errors.filter((err) => err.includes("Last name"));
       return filtered.toString();
     },
+    emailAddressDomain() {
+      return this.email !== null ? this.email.match(this.r.DOMAIN) : null;
+    },
+    emailAddressLastCh() {
+      return this.email !== null
+        ? this.email.charAt(this.email.length - 1)
+        : null;
+    },
+    emailAddressFirstCh() {
+      return this.email !== null ? this.email.charAt(0) : null;
+    },
   },
   methods: {
     validator(e) {
       const { id, value } = e.target;
-
       const fields = {
         email: () => {
           this.handleError(
@@ -116,7 +136,69 @@ export default {
             this.errorMissingString(value, this.r.LOCAL),
             this.errorMessages.missingString("Email address", "local part")
           );
+
+          this.handleError(
+            this.errorTooLong(value),
+            this.errorMessages.illegalCharacter(
+              "Email address",
+              "address is too long"
+            )
+          );
+
+          this.handleError(
+            this.errorIllegalCharacter(value, this.r.WHITE_SPACE),
+            this.errorMessages.illegalCharacter("Email address", "white space")
+          );
+
+          this.handleError(
+            this.errorIllegalCharacter(
+              this.emailAddressDomain,
+              this.r.UNDERSCORE
+            ),
+            this.errorMessages.illegalCharacter("Email address", "underscore")
+          );
+
+          this.handleError(
+            this.errorIllegalCharacter(this.emailAddressLastCh, this.r.DOT),
+            this.errorMessages.illegalCharacter(
+              "Email address",
+              "address ends with dot"
+            )
+          );
+
+          this.handleError(
+            this.errorIllegalCharacter(this.emailAddressFirstCh, this.r.DOT),
+            this.errorMessages.illegalCharacter(
+              "Email address",
+              "address starts with dot"
+            )
+          );
+
+          this.handleError(
+            this.errorIllegalCharacter(value, this.r.CONSECUTIVE_DOTS),
+            this.errorMessages.illegalCharacter(
+              "Email address",
+              "has two consecutive dots"
+            )
+          );
+
+          this.handleError(
+            this.errorIllegalCharacter(value, this.r.AT_SYMBOLS_MULTIPLE),
+            this.errorMessages.illegalCharacter(
+              "Email address",
+              "has multiple @ symbols"
+            )
+          );
+
+          this.handleError(
+            this.errorIllegalCharacter(value, this.r.QUOTATION_MARKS),
+            this.errorMessages.illegalCharacter(
+              "Email address",
+              "quotation marks"
+            )
+          );
         },
+
         "first-name": () => {
           this.handleError(
             this.errorTooShort(value),
@@ -127,11 +209,13 @@ export default {
             this.errorMessages.illegalCharacter("First name")
           );
         },
+
         "last-name": () => {
           this.handleError(
             this.errorTooShort(value),
             this.errorMessages.tooShort("Last name")
           );
+
           this.handleError(
             this.errorIllegalCharacter(value, this.r.SPECIAL),
             this.errorMessages.illegalCharacter("Last name")
@@ -161,6 +245,7 @@ export default {
 
       return res;
     },
+
     errorTooShort(value) {
       let res = null;
       if (value != null) {
@@ -168,15 +253,29 @@ export default {
       }
       return res;
     },
+
+    errorTooLong(value) {
+      let res = null;
+      if (value != null) {
+        value.length > 64 ? (res = true) : (res = false);
+      }
+      return res;
+    },
+
+    // errorIllegalLength dfines legal length 3
+
+    // errorIllegalString
     errorIllegalCharacter(value, q) {
       let res = null;
       let r = new RegExp(q);
-
       if (r.test(value)) {
         res = true;
       }
       return res;
     },
   },
+
+  // the issue of mutating value before passing it in validator
+  // issue of accruing error messages to designated field
 };
 </script>

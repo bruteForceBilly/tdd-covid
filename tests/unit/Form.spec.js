@@ -80,7 +80,7 @@ describe("Contact field inputs for name", () => {
   });
 });
 
-describe("Contact field input for email", () => {
+describe("Contact field email input", () => {
   it("Has email input field", () => {
     expect(wrapper.find("#email").exists()).toBe(true);
   });
@@ -106,7 +106,6 @@ describe("Contact field input for email", () => {
     );
   });
 
-  // Displays error if email adress has no local-part
   it("Display error if email adress has no local part", async () => {
     await wrapper.find("#email").setValue("@world.com");
     expect(wrapper.find("label[for='email'].error").text()).toContain(
@@ -114,21 +113,65 @@ describe("Contact field input for email", () => {
     );
   });
 
-  // Displays error if address has white spaces
+  it("Display error if email adress has local part longer than 64 charachters", async () => {
+    await wrapper
+      .find("#email")
+      .setValue(
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@world.com"
+      );
+    expect(wrapper.find("label[for='email'].error").text()).toContain(
+      "Email address has unallowed characters: address is too long"
+    );
+  });
 
-  // Displays error if underscores is present in domain
+  it("Displays error if address has white space", async () => {
+    await wrapper.find("#email").setValue("hello @wo  rld.com");
+    expect(wrapper.find("label[for='email'].error").text()).toContain(
+      "Email address has unallowed characters: white space"
+    );
+  });
 
-  // Displays error if more than @ symbols
+  it("Displays error if underscores is present in domain", async () => {
+    await wrapper.find("#email").setValue("hello@wo_rld.com");
+    expect(wrapper.find("label[for='email'].error").text()).toContain(
+      "Email address has unallowed characters: underscore"
+    );
+    await wrapper.find("#email").setValue("he_llo@world.com");
+    expect(wrapper.find("label[for='email'].error").exists()).toBe(false);
+  });
 
-  // Displays error if email ends in a dot or any special charachter
+  it("Displays error if email ends in a dot", async () => {
+    await wrapper.find("#email").setValue("hello@world.co.uk.");
+    expect(wrapper.find("label[for='email'].error").text()).toContain(
+      "Email address has unallowed characters: address ends with dot"
+    );
+  });
 
-  // Displays error if email starts with dot
+  it("Displays error if email starts with a dot", async () => {
+    await wrapper.find("#email").setValue(".hello.world.@globe.co.uk");
+    expect(wrapper.find("label[for='email'].error").text()).toContain(
+      "Email address has unallowed characters: address starts with dot"
+    );
+  });
 
-  // Displays error if two or more dots in a row
+  it("Displays error if email adress has consecutive dots", async () => {
+    await wrapper.find("#email").setValue("hello@world..com");
+    expect(wrapper.find("label[for='email'].error").text()).toContain(
+      "Email address has unallowed characters: has two consecutive dots"
+    );
+  });
 
-  // Displays error if qouted strings in domain
+  it("Displays error if email adress has two multiple @ symbols", async () => {
+    await wrapper.find("#email").setValue("hello@@world.com");
+    expect(wrapper.find("label[for='email'].error").text()).toContain(
+      "Email address has unallowed characters: has multiple @ symbols"
+    );
+  });
 
-  // Displays error if invalid charachters occurs outside qoutation marks
-
-  // Displays error if local part is longer than 64 charachters
+  it("Displays error if email adress has quotation marks", async () => {
+    await wrapper.find("#email").setValue(`hello"world"@globe.com`);
+    expect(wrapper.find("label[for='email'].error").text()).toContain(
+      "Email address has unallowed characters: quotation marks"
+    );
+  });
 });
