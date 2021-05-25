@@ -44,13 +44,14 @@
         </p>
 
         <p>
-          <label for="phone"> Phone {{ isInputActive }}</label>
+          <label for="phone"> Phone {{ isInputActive }} </label>
           <input
             type="text"
             id="phone"
             v-model="phoneNumber"
             @blur="isInputActive = false"
             @focus="isInputActive = true"
+            @input="validator($event)"
           />
           <label v-if="phoneErrors" for="phone" class="error">{{
             phoneErrors
@@ -77,7 +78,11 @@ const regex = {
     WHITE_SPACE: /\s/,
     QUOTATION_MARKS: /'|"/,
   },
-  phone: /^(?<prefix>\+|00)(?<country>[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)(?:\(0\))?(?<number>\d{6,14})$/,
+  phone: {
+    COUNTRY_CODE: /^(?<prefix>\+|00)(?<country>[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)?/g,
+    INTERNATIONAL_PHONE_NUMBER: /^(?<prefix>\+|00)(?<country>[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)(?:\(0\))?(?<number>\d{6,14})$/,
+    LOCAL_PHONE_NUMBER: /^0+\d{9}$/,
+  },
 };
 
 Object.freeze(regex);
@@ -140,13 +145,18 @@ export default {
           return this.phoneDigits.toString();
         } else if (this.phoneDigits) {
           let res = null;
-          let match = this.r.phone.exec(this.phoneDigits);
 
-          if (match) {
-            let { prefix, country, number } = match.groups;
+          let intPhoneMatch = this.r.phone.INTERNATIONAL_PHONE_NUMBER.exec(
+            this.phoneDigits
+          );
+
+          if (intPhoneMatch) {
+            let { prefix, country, number } = intPhoneMatch.groups;
             prefix = prefix.replace(/^0{2}/g, "+");
             number = number.charAt(0) + " " + number.substr(1);
             res = prefix + country + " " + number;
+          } else {
+            res = this.phoneDigits.replace(/(?<=^0\d)(?!$)/, " ");
           }
 
           return res;
@@ -154,11 +164,15 @@ export default {
           return null;
         }
       },
-      set: function (modifiedValue) {
-        let match = this.r.phone.exec(modifiedValue);
-        if (match) {
-          const { prefix, country, number } = match.groups;
+      set: function (value) {
+        let intPhoneMatch = this.r.phone.INTERNATIONAL_PHONE_NUMBER.exec(value);
+
+        if (intPhoneMatch) {
+          let { prefix, country, number } = intPhoneMatch.groups;
+          //prefix = prefix.replace(/^\+/g, "00");
           this.phoneDigits = prefix + country + number.replace(/^0/g, "");
+        } else {
+          this.phoneDigits = value;
         }
       },
     },
@@ -192,7 +206,7 @@ export default {
           );
 
           this.handleError(
-            this.errorTooLong(value),
+            this.errorTooLong(value, 64),
             this.errorMessages.illegalCharacter(
               "Email address",
               "address is too long"
@@ -261,7 +275,7 @@ export default {
 
         "first-name": () => {
           this.handleError(
-            this.errorTooShort(value),
+            this.errorTooShort(value, 2),
             this.errorMessages.tooShort("First name")
           );
           this.handleError(
@@ -272,13 +286,38 @@ export default {
 
         "last-name": () => {
           this.handleError(
-            this.errorTooShort(value),
+            this.errorTooShort(value, 2),
             this.errorMessages.tooShort("Last name")
           );
 
           this.handleError(
             this.errorIllegalCharacter(value, this.r.email.SPECIAL),
             this.errorMessages.illegalCharacter("Last name")
+          );
+        },
+
+        phone: () => {
+          this.handleError(
+            this.errorMissingString(value, /^0|\+/),
+            this.errorMessages.missingString(
+              "Phone number",
+              "charachter: number must start with 0 or +"
+            )
+          );
+
+          this.handleError(
+            this.errorTooShort(value, 10),
+            this.errorMessages.tooShort("Phone number")
+          );
+
+          this.handleError(
+            this.errorTooLong(value, 12),
+            this.errorMessages.tooLong("Phone number")
+          );
+
+          this.handleError(
+            this.errorIllegalCharacter(value, /(?<!^)[^\d\s]/g),
+            this.errorMessages.illegalCharacter("Phone number")
           );
         },
       };
@@ -306,18 +345,20 @@ export default {
       return res;
     },
 
-    errorTooShort(value) {
+    errorTooShort(value, limit) {
       let res = null;
       if (value != null) {
-        value.length < 2 && value.length >= 1 ? (res = true) : (res = false);
+        value.length < limit && value.length >= 1
+          ? (res = true)
+          : (res = false);
       }
       return res;
     },
 
-    errorTooLong(value) {
+    errorTooLong(value, limit) {
       let res = null;
       if (value != null) {
-        value.length > 64 ? (res = true) : (res = false);
+        value.length > limit ? (res = true) : (res = false);
       }
       return res;
     },

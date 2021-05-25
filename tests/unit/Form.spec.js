@@ -186,35 +186,47 @@ describe("Phone", () => {
     expect(wrapper.find("#phone").exists()).toBe(true);
   });
 
-  // 0123456789
-  //  +31 6 CBBBBBBB
-
-  it("Replaces starting digits 00 with + in number", async () => {
-    await wrapper.find("#phone").setValue("0099123456789");
-    expect(wrapper.find("#phone").element.value).toBe("+99123456789");
+  it("Formats phone number correctly", async () => {
+    await wrapper.find("#phone").setValue("0099(0)123456789");
+    expect(wrapper.find("#phone").element.value).toBe("+99 1 23456789");
+    await wrapper.find("#phone").setValue("0123456789");
+    expect(wrapper.find("#phone").element.value).toBe("01 23456789");
   });
 
-  // it removes areacode null prefix (0) if present
+  it("Display error if number does not start with 0 or +", async () => {
+    await wrapper.find("#phone").setValue("123456789");
+    expect(wrapper.find("label[for='phone'].error").text()).toContain(
+      "Phone number is missing charachter: number must start with 0 or +"
+    );
+    await wrapper.find("#phone").setValue("+123456789");
+    expect(wrapper.find("label[for='phone'].error").exists()).toBe(false);
 
-  // it("Display error if no country code is entered", () => {
-  //   await wrapper.find("#phone").setValue("0123456789");
-  //    expect(wrapper.find("label[for='phone'].error").text()).toContain(
-  //     "Phone number is missing country code"
-  //   );
+    await wrapper.find("#phone").setValue("0123456789");
+    expect(wrapper.find("label[for='phone'].error").exists()).toBe(false);
+  });
 
-  //   await wrapper.find("#phone").setValue("+99123456789");
-  //   expect(wrapper.find("label[for='phone'].error").exists()).toBe(false);
-  // })
+  it("Display error if phone number is too short", async () => {
+    await wrapper.find("#phone").setValue("1234567");
+    expect(wrapper.find("label[for='phone'].error").text()).toContain(
+      "Phone number is too short"
+    );
+  });
 
-  // Displays error if alphabetic charachters
+  it("Display error if phone number is too long", async () => {
+    await wrapper.find("#phone").setValue("123456789123456789");
+    expect(wrapper.find("label[for='phone'].error").text()).toContain(
+      "Phone number is too long"
+    );
+  });
 
-  // Displays error if special charachters except for + or paranthesis
-
-  // Displays error if number has too few digits
-
-  // Displays error if number has too many digits
-
-  // Field should add international
-
-  // +31 6 12 28 24 60
+  it("Display error if unallowed charachters", async () => {
+    await wrapper.find("#phone").setValue("1234u56789");
+    expect(wrapper.find("label[for='phone'].error").text()).toContain(
+      "Phone number has unallowed characters"
+    );
+  });
 });
+
+// Field should add international
+
+// +31 6 12 28 24 60
