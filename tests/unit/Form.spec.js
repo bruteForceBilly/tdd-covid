@@ -27,12 +27,14 @@ describe("Form.vue", () => {
   });
 });
 
-describe("Contact field inputs for name", () => {
+describe("Name", () => {
   it("Has first name input field", () => {
     expect(
       wrapper.find("fieldset[name='contact'] #first-name[type='text']").exists()
     ).toBe(true);
   });
+
+  //Displays error if not both name fields are filled in
 
   it("Has last name input field", () => {
     expect(
@@ -80,7 +82,7 @@ describe("Contact field inputs for name", () => {
   });
 });
 
-describe("Contact field email input", () => {
+describe("Email", () => {
   it("Has email input field", () => {
     expect(wrapper.find("#email").exists()).toBe(true);
   });
@@ -100,6 +102,7 @@ describe("Contact field email input", () => {
   });
 
   it("Display error if email adress has no top level domain", async () => {
+    // hello.world@gmail <- should give error tld is missing, right now no error
     await wrapper.find("#email").setValue("hello@world");
     expect(wrapper.find("label[for='email'].error").text()).toContain(
       "Email address is missing top level domain"
@@ -147,6 +150,8 @@ describe("Contact field email input", () => {
     );
   });
 
+  // local part cant end wigh dot
+
   it("Displays error if email starts with a dot", async () => {
     await wrapper.find("#email").setValue(".hello.world.@globe.co.uk");
     expect(wrapper.find("label[for='email'].error").text()).toContain(
@@ -174,4 +179,42 @@ describe("Contact field email input", () => {
       "Email address has unallowed characters: quotation marks"
     );
   });
+});
+
+describe("Phone", () => {
+  it("Has phone number input field", () => {
+    expect(wrapper.find("#phone").exists()).toBe(true);
+  });
+
+  // 0123456789
+  //  +31 6 CBBBBBBB
+
+  it("Replaces starting digits 00 with + in number", async () => {
+    await wrapper.find("#phone").setValue("0099123456789");
+    expect(wrapper.find("#phone").element.value).toBe("+99123456789");
+  });
+
+  // it removes areacode null prefix (0) if present
+
+  // it("Display error if no country code is entered", () => {
+  //   await wrapper.find("#phone").setValue("0123456789");
+  //    expect(wrapper.find("label[for='phone'].error").text()).toContain(
+  //     "Phone number is missing country code"
+  //   );
+
+  //   await wrapper.find("#phone").setValue("+99123456789");
+  //   expect(wrapper.find("label[for='phone'].error").exists()).toBe(false);
+  // })
+
+  // Displays error if alphabetic charachters
+
+  // Displays error if special charachters except for + or paranthesis
+
+  // Displays error if number has too few digits
+
+  // Displays error if number has too many digits
+
+  // Field should add international
+
+  // +31 6 12 28 24 60
 });
