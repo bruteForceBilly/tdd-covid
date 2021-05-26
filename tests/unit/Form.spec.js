@@ -102,8 +102,7 @@ describe("Email", () => {
   });
 
   it("Display error if email adress has no top level domain", async () => {
-    // hello.world@gmail <- should give error tld is missing, right now no error
-    await wrapper.find("#email").setValue("hello@world");
+    await wrapper.find("#email").setValue("hello.world@globe");
     expect(wrapper.find("label[for='email'].error").text()).toContain(
       "Email address is missing top level domain"
     );
@@ -150,12 +149,17 @@ describe("Email", () => {
     );
   });
 
-  // local part cant end wigh dot
-
   it("Displays error if email starts with a dot", async () => {
     await wrapper.find("#email").setValue(".hello.world.@globe.co.uk");
     expect(wrapper.find("label[for='email'].error").text()).toContain(
       "Email address has unallowed characters: address starts with dot"
+    );
+  });
+
+  it("Displays error if local part ends in a dot", async () => {
+    await wrapper.find("#email").setValue("hello.@world.co.uk");
+    expect(wrapper.find("label[for='email'].error").text()).toContain(
+      "Email address has unallowed characters: local part ends with dot"
     );
   });
 

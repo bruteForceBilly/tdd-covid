@@ -44,7 +44,7 @@
         </p>
 
         <p>
-          <label for="phone"> Phone {{ isInputActive }} </label>
+          <label for="phone"> Phone </label>
           <input
             type="text"
             id="phone"
@@ -64,6 +64,8 @@
 
 <script>
 // move to mixin later
+// rewrite so that you are using regex instead of computed props
+
 const regex = {
   email: {
     AT_SYMBOL: /@/,
@@ -71,10 +73,10 @@ const regex = {
     DOMAIN_NAME: /(?<=@)[^.]+(?=\.|(?=$))/,
     DOT: /\./,
     DOTS_CONSECUTIVE: /\.\./,
-    LOCAL_PART: /(?<!@)^(\w+|\.)+/,
+    LOCAL_PART: /((?<!@)^(\w+|\.)+)/,
     UNDERSCORE: /_/,
     SPECIAL: /[^a-zA-Z\x7f-\xff]/g,
-    TLD: /(\.+\w+)?(\.+\w+)/,
+    TLD: /(\.+\w+)?(\.+\w+)$/,
     WHITE_SPACE: /\s/,
     QUOTATION_MARKS: /'|"/,
   },
@@ -126,6 +128,7 @@ export default {
       let filtered = this.errors.filter((err) => err.includes("Last name"));
       return filtered.toString();
     },
+
     emailAddressDomain() {
       return this.email !== null
         ? this.email.match(this.r.email.DOMAIN_NAME)
@@ -234,6 +237,14 @@ export default {
             this.errorMessages.illegalCharacter(
               "Email address",
               "address ends with dot"
+            )
+          );
+
+          this.handleError(
+            this.errorIllegalCharacter(value, /\.(?=@)/),
+            this.errorMessages.illegalCharacter(
+              "Email address",
+              "local part ends with dot"
             )
           );
 
