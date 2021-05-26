@@ -230,7 +230,3 @@ describe("Phone", () => {
     );
   });
 });
-
-// Field should add international
-
-// +31 6 12 28 24 60

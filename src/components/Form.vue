@@ -64,21 +64,16 @@
 
 <script>
 // move to mixin later
+// Loop out the template as each field is identical
+// Remove not needed regex like AT_SYMBOL or DOT, inline regex is fine for the
 // rewrite so that you are using regex instead of computed props
 
 const regex = {
   email: {
-    AT_SYMBOL: /@/,
-    AT_SYMBOLS_MULTIPLE: /@.*?(@)/,
     DOMAIN_NAME: /(?<=@)[^.]+(?=\.|(?=$))/,
-    DOT: /\./,
-    DOTS_CONSECUTIVE: /\.\./,
     LOCAL_PART: /((?<!@)^(\w+|\.)+)/,
-    UNDERSCORE: /_/,
     SPECIAL: /[^a-zA-Z\x7f-\xff]/g,
     TLD: /(\.+\w+)?(\.+\w+)$/,
-    WHITE_SPACE: /\s/,
-    QUOTATION_MARKS: /'|"/,
   },
   phone: {
     COUNTRY_CODE: /^(?<prefix>\+|00)(?<country>[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)?/g,
@@ -186,7 +181,7 @@ export default {
       const fields = {
         email: () => {
           this.handleError(
-            this.errorMissingString(value, this.r.email.AT_SYMBOL),
+            this.errorMissingString(value, /@/g),
             this.errorMessages.missingString("Email address", "@")
           );
 
@@ -217,23 +212,17 @@ export default {
           );
 
           this.handleError(
-            this.errorIllegalCharacter(value, this.r.email.WHITE_SPACE),
+            this.errorIllegalCharacter(value, /\s/),
             this.errorMessages.illegalCharacter("Email address", "white space")
           );
 
           this.handleError(
-            this.errorIllegalCharacter(
-              this.emailAddressDomain,
-              this.r.email.UNDERSCORE
-            ),
+            this.errorIllegalCharacter(this.emailAddressDomain, /\_/),
             this.errorMessages.illegalCharacter("Email address", "underscore")
           );
 
           this.handleError(
-            this.errorIllegalCharacter(
-              this.emailAddressLastCh,
-              this.r.email.DOT
-            ),
+            this.errorIllegalCharacter(this.emailAddressLastCh, /\./g),
             this.errorMessages.illegalCharacter(
               "Email address",
               "address ends with dot"
@@ -249,10 +238,7 @@ export default {
           );
 
           this.handleError(
-            this.errorIllegalCharacter(
-              this.emailAddressFirstCh,
-              this.r.email.DOT
-            ),
+            this.errorIllegalCharacter(this.emailAddressFirstCh, /\./g),
             this.errorMessages.illegalCharacter(
               "Email address",
               "address starts with dot"
@@ -260,7 +246,7 @@ export default {
           );
 
           this.handleError(
-            this.errorIllegalCharacter(value, this.r.email.DOTS_CONSECUTIVE),
+            this.errorIllegalCharacter(value, /\.\./),
             this.errorMessages.illegalCharacter(
               "Email address",
               "has two consecutive dots"
@@ -268,7 +254,7 @@ export default {
           );
 
           this.handleError(
-            this.errorIllegalCharacter(value, this.r.email.AT_SYMBOLS_MULTIPLE),
+            this.errorIllegalCharacter(value, /@.*?(@)/),
             this.errorMessages.illegalCharacter(
               "Email address",
               "has multiple @ symbols"
@@ -276,7 +262,7 @@ export default {
           );
 
           this.handleError(
-            this.errorIllegalCharacter(value, this.r.email.QUOTATION_MARKS),
+            this.errorIllegalCharacter(value, /'|"/),
             this.errorMessages.illegalCharacter(
               "Email address",
               "quotation marks"
@@ -356,6 +342,8 @@ export default {
       return res;
     },
 
+    // errorIllegalLength instead of TooShort or  ?
+
     errorTooShort(value, limit) {
       let res = null;
       if (value != null) {
@@ -374,8 +362,6 @@ export default {
       return res;
     },
 
-    // errorIllegalLength dfines legal length 3
-
     // errorIllegalString
     errorIllegalCharacter(value, q) {
       let res = null;
@@ -388,6 +374,7 @@ export default {
   },
 
   // the issue of mutating value before passing it in validator
+  // could I use currying or monads to pipe value tranform
   // issue of accruing error messages to designated field
 };
 </script>
