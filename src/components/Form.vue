@@ -65,9 +65,6 @@
 <script>
 // move to mixin later
 // Loop out the template as each field is identical
-// Remove not needed regex like AT_SYMBOL or DOT, inline regex is fine for the
-// rewrite so that you are using regex instead of computed props
-
 const regex = {
   email: {
     DOMAIN_NAME: /(?<=@)[^.]+(?=\.|(?=$))/,
@@ -82,7 +79,32 @@ const regex = {
   },
 };
 
+const emailMissingStringParams = [
+  [/@/g, "Email address", "@"],
+  [regex.email.DOMAIN_NAME, "Email address", "domain name"],
+  [regex.email.TLD, "Email address", "top level domain"],
+  [regex.email.LOCAL_PART, "Email address", "local part"],
+];
+
+const phoneMissingStringParams = [
+  [/^0|\+/, "Phone number", "charachter: number must start with 0 or +"],
+];
+
+const emailIllegalStringParams = [
+  [/\s/, "Email address", "white space"],
+  [/\.$/, "Email address", "address ends with dot"],
+  [/\.(?=@)/, "Email address", "local part ends with dot"],
+  [/^\./, "Email address", "address starts with dot"],
+  [/\.\./, "Email address", "has two consecutive dots"],
+  [/@.*?(@)/, "Email address", "has multiple @ symbols"],
+  [/'|"/, "Email address", "quotation marks"],
+  [/(?<=@)[^.]+_/, "Email address", "underscore"],
+];
+
 Object.freeze(regex);
+Object.freeze(emailMissingStringParams);
+Object.freeze(emailMissingStringParams);
+Object.freeze(emailIllegalStringParams);
 
 export default {
   name: "Form",
@@ -104,9 +126,17 @@ export default {
       isInputActive: false,
       phoneDigits: null,
       r: regex,
+      isMissing: {
+        email: emailMissingStringParams,
+        phone: phoneMissingStringParams,
+      },
+      isIllegal: {
+        email: emailIllegalStringParams,
+      },
     };
   },
   computed: {
+    // errors could be a method
     emailErrors() {
       let filtered = this.errors.filter((err) => err.includes("Email"));
       return filtered.toString();
@@ -122,20 +152,6 @@ export default {
     lastNameErrors() {
       let filtered = this.errors.filter((err) => err.includes("Last name"));
       return filtered.toString();
-    },
-
-    emailAddressDomain() {
-      return this.email !== null
-        ? this.email.match(this.r.email.DOMAIN_NAME)
-        : null;
-    },
-    emailAddressLastCh() {
-      return this.email !== null
-        ? this.email.charAt(this.email.length - 1)
-        : null;
-    },
-    emailAddressFirstCh() {
-      return this.email !== null ? this.email.charAt(0) : null;
     },
     phoneNumber: {
       get: function () {
@@ -176,96 +192,38 @@ export default {
     },
   },
   methods: {
+    checkMissingString(value, params) {
+      let [r, target, message] = params;
+      return this.handleError(
+        this.errorMissingString(value, r),
+        this.errorMessages.missingString(target, message)
+      );
+    },
+    checkIllegalString(value, params) {
+      let [r, target, message] = params;
+      return this.handleError(
+        this.errorIllegalString(value, r),
+        this.errorMessages.illegalCharacter(target, message)
+      );
+    },
     validator(e) {
       const { id, value } = e.target;
+
       const fields = {
         email: () => {
-          this.handleError(
-            this.errorMissingString(value, /@/g),
-            this.errorMessages.missingString("Email address", "@")
-          );
+          this.isMissing.email.forEach((params) => {
+            return this.checkMissingString(value, params);
+          });
 
-          this.handleError(
-            this.errorMissingString(value, this.r.email.DOMAIN_NAME),
-            this.errorMessages.missingString("Email address", "domain name")
-          );
-
-          this.handleError(
-            this.errorMissingString(value, this.r.email.TLD),
-            this.errorMessages.missingString(
-              "Email address",
-              "top level domain"
-            )
-          );
-
-          this.handleError(
-            this.errorMissingString(value, this.r.email.LOCAL_PART),
-            this.errorMessages.missingString("Email address", "local part")
-          );
+          this.isIllegal.email.forEach((params) => {
+            return this.checkIllegalString(value, params);
+          });
 
           this.handleError(
             this.errorTooLong(value, 64),
             this.errorMessages.illegalCharacter(
               "Email address",
               "address is too long"
-            )
-          );
-
-          this.handleError(
-            this.errorIllegalCharacter(value, /\s/),
-            this.errorMessages.illegalCharacter("Email address", "white space")
-          );
-
-          this.handleError(
-            this.errorIllegalCharacter(this.emailAddressDomain, /\_/),
-            this.errorMessages.illegalCharacter("Email address", "underscore")
-          );
-
-          this.handleError(
-            this.errorIllegalCharacter(this.emailAddressLastCh, /\./g),
-            this.errorMessages.illegalCharacter(
-              "Email address",
-              "address ends with dot"
-            )
-          );
-
-          this.handleError(
-            this.errorIllegalCharacter(value, /\.(?=@)/),
-            this.errorMessages.illegalCharacter(
-              "Email address",
-              "local part ends with dot"
-            )
-          );
-
-          this.handleError(
-            this.errorIllegalCharacter(this.emailAddressFirstCh, /\./g),
-            this.errorMessages.illegalCharacter(
-              "Email address",
-              "address starts with dot"
-            )
-          );
-
-          this.handleError(
-            this.errorIllegalCharacter(value, /\.\./),
-            this.errorMessages.illegalCharacter(
-              "Email address",
-              "has two consecutive dots"
-            )
-          );
-
-          this.handleError(
-            this.errorIllegalCharacter(value, /@.*?(@)/),
-            this.errorMessages.illegalCharacter(
-              "Email address",
-              "has multiple @ symbols"
-            )
-          );
-
-          this.handleError(
-            this.errorIllegalCharacter(value, /'|"/),
-            this.errorMessages.illegalCharacter(
-              "Email address",
-              "quotation marks"
             )
           );
         },
@@ -276,7 +234,7 @@ export default {
             this.errorMessages.tooShort("First name")
           );
           this.handleError(
-            this.errorIllegalCharacter(value, this.r.email.SPECIAL),
+            this.errorIllegalString(value, this.r.email.SPECIAL),
             this.errorMessages.illegalCharacter("First name")
           );
         },
@@ -288,19 +246,15 @@ export default {
           );
 
           this.handleError(
-            this.errorIllegalCharacter(value, this.r.email.SPECIAL),
+            this.errorIllegalString(value, this.r.email.SPECIAL),
             this.errorMessages.illegalCharacter("Last name")
           );
         },
 
         phone: () => {
-          this.handleError(
-            this.errorMissingString(value, /^0|\+/),
-            this.errorMessages.missingString(
-              "Phone number",
-              "charachter: number must start with 0 or +"
-            )
-          );
+          this.isMissing.phone.forEach((params) => {
+            return this.checkMissingString(value, params);
+          });
 
           this.handleError(
             this.errorTooShort(value, 10),
@@ -313,7 +267,7 @@ export default {
           );
 
           this.handleError(
-            this.errorIllegalCharacter(value, /(?<!^)[^\d\s]/g),
+            this.errorIllegalString(value, /(?<!^)[^\d\s]/g),
             this.errorMessages.illegalCharacter("Phone number")
           );
         },
@@ -362,8 +316,7 @@ export default {
       return res;
     },
 
-    // errorIllegalString
-    errorIllegalCharacter(value, q) {
+    errorIllegalString(value, q) {
       let res = null;
       let r = new RegExp(q);
       if (r.test(value)) {
@@ -372,9 +325,5 @@ export default {
       return res;
     },
   },
-
-  // the issue of mutating value before passing it in validator
-  // could I use currying or monads to pipe value tranform
-  // issue of accruing error messages to designated field
 };
 </script>
