@@ -3,59 +3,19 @@
     <form>
       <fieldset name="contact">
         <legend>Contact information</legend>
-
-        <p>
-          <label for="first-name"> First name </label>
+        <p v-for="field in fields" :key="field.id">
+          <label :for="field.id"> {{ field.label }} </label>
           <input
             type="text"
-            id="first-name"
-            v-model.trim="firstName"
-            @input="validator($event)"
+            :id="field.id"
+            :value="getValue(field)"
+            @blur="setActiveInput(field.id)"
+            @focus="setActiveInput(field.id)"
+            @input="[setValue($event.target.value, field), validator($event)]"
           />
-          <label v-if="firstNameErrors" for="first-name" class="error">{{
-            firstNameErrors
-          }}</label>
-        </p>
-
-        <p>
-          <label for="last-name"> Last name </label>
-          <input
-            type="text"
-            id="last-name"
-            v-model.trim="lastName"
-            @input="validator($event)"
-          />
-          <label v-if="lastNameErrors" for="last-name" class="error">{{
-            lastNameErrors
-          }}</label>
-        </p>
-
-        <p>
-          <label for="email"> Email </label>
-          <input
-            type="text"
-            id="email"
-            v-model.trim="email"
-            @input="validator($event)"
-          />
-          <label v-if="emailErrors" for="email" class="error">{{
-            emailErrors
-          }}</label>
-        </p>
-
-        <p>
-          <label for="phone"> Phone </label>
-          <input
-            type="text"
-            id="phone"
-            v-model="phoneNumber"
-            @blur="isInputActive = false"
-            @focus="isInputActive = true"
-            @input="validator($event)"
-          />
-          <label v-if="phoneErrors" for="phone" class="error">{{
-            phoneErrors
-          }}</label>
+          <label v-if="errors" :for="field.id" class="error">
+            {{ errors.filter((err) => err.includes(field.label)).toString() }}
+          </label>
         </p>
       </fieldset>
     </form>
@@ -63,8 +23,6 @@
 </template>
 
 <script>
-// move to mixin later
-// Loop out the template as each field is identical
 const regex = {
   email: {
     DOMAIN_NAME: /(?<=@)[^.]+(?=\.|(?=$))/,
@@ -108,8 +66,10 @@ Object.freeze(emailIllegalStringParams);
 
 export default {
   name: "Form",
+  inheritAttrs: false,
   data() {
     return {
+      activeInput: null,
       errors: [],
       errorMessages: {
         missingString: (target, string) => `${target} is missing ${string}`,
@@ -121,6 +81,32 @@ export default {
             : `${target} has unallowed characters`,
       },
       email: null,
+      fields: [
+        {
+          id: "first-name",
+          label: "First name",
+          value: "",
+          errors: this.firstNameErrors,
+        },
+        {
+          id: "last-name",
+          label: "Last name",
+          value: "",
+          errors: this.lastNameErrors,
+        },
+        {
+          id: "email",
+          label: "Email",
+          value: "",
+          errors: this.emailErrors,
+        },
+        {
+          id: "phone",
+          label: "Phone",
+          value: this.phone,
+          errors: this.phoneErrors,
+        },
+      ],
       firstName: null,
       lastName: null,
       isInputActive: false,
@@ -135,63 +121,46 @@ export default {
       },
     };
   },
-  computed: {
-    // errors could be a method
-    emailErrors() {
-      let filtered = this.errors.filter((err) => err.includes("Email"));
-      return filtered.toString();
-    },
-    phoneErrors() {
-      let filtered = this.errors.filter((err) => err.includes("Phone"));
-      return filtered.toString();
-    },
-    firstNameErrors() {
-      let filtered = this.errors.filter((err) => err.includes("First name"));
-      return filtered.toString();
-    },
-    lastNameErrors() {
-      let filtered = this.errors.filter((err) => err.includes("Last name"));
-      return filtered.toString();
-    },
-    phoneNumber: {
-      get: function () {
-        if (this.isInputActive && this.phoneDigits) {
-          return this.phoneDigits.toString();
-        } else if (this.phoneDigits) {
-          let res = null;
-
-          let intPhoneMatch = this.r.phone.INTERNATIONAL_PHONE_NUMBER.exec(
-            this.phoneDigits
-          );
-
-          if (intPhoneMatch) {
-            let { prefix, country, number } = intPhoneMatch.groups;
-            prefix = prefix.replace(/^0{2}/g, "+");
-            number = number.charAt(0) + " " + number.substr(1);
-            res = prefix + country + " " + number;
-          } else {
-            res = this.phoneDigits.replace(/(?<=^0\d)(?!$)/, " ");
-          }
-
-          return res;
-        } else {
-          return null;
-        }
-      },
-      set: function (value) {
+  methods: {
+    getFormatPhoneNumber(value) {
+      if (this.activeInput == "phone" && value) {
+        return value;
+      } else if (value) {
+        let res = null;
         let intPhoneMatch = this.r.phone.INTERNATIONAL_PHONE_NUMBER.exec(value);
-
         if (intPhoneMatch) {
           let { prefix, country, number } = intPhoneMatch.groups;
-          //prefix = prefix.replace(/^\+/g, "00");
-          this.phoneDigits = prefix + country + number.replace(/^0/g, "");
+          prefix = prefix.replace(/^0{2}/g, "+");
+          number = number.charAt(0) + " " + number.substr(1);
+          res = prefix + country + " " + number;
         } else {
-          this.phoneDigits = value;
+          res = value.replace(/(?<=^0\d)(?!$)/, " ");
         }
-      },
+        return res;
+      } else {
+        return null;
+      }
     },
-  },
-  methods: {
+    setFormatPhoneNumber(value) {
+      let intPhoneMatch = this.r.phone.INTERNATIONAL_PHONE_NUMBER.exec(value);
+      if (!intPhoneMatch) return value;
+      let { prefix, country, number } = intPhoneMatch.groups;
+      return prefix + country + number.replace(/^0/g, "");
+    },
+    getValue(field) {
+      const { id, value } = field;
+      return id == "phone" ? this.getFormatPhoneNumber(value) : value;
+    },
+    setValue(value, field) {
+      return field.id === "phone"
+        ? (field.value = this.setFormatPhoneNumber(value))
+        : (field.value = value);
+    },
+    setActiveInput(inputId) {
+      return this.activeInput === inputId
+        ? (this.activeInput = null)
+        : (this.activeInput = inputId);
+    },
     checkMissingString(value, params) {
       let [r, target, message] = params;
       return this.handleError(
@@ -295,8 +264,6 @@ export default {
 
       return res;
     },
-
-    // errorIllegalLength instead of TooShort or  ?
 
     errorTooShort(value, limit) {
       let res = null;
