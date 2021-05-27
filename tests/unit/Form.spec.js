@@ -21,11 +21,56 @@ describe("Form.vue", () => {
     const form = wrapper.find("form");
     expect(form.exists()).toBe(true);
   });
+  it("Has a fieldset named questions", () => {
+    const questions = wrapper.find("fieldset[name='questions']");
+    expect(questions.exists()).toBe(true);
+  });
   it("Has a fieldset named contact", () => {
     const contactFieldset = wrapper.find("fieldset[name='contact']");
     expect(contactFieldset.exists()).toBe(true);
   });
 });
+
+describe("Questions", () => {
+  it("Has a question", () => {
+    const question = wrapper.find("fieldset[name='questions'] .question");
+    expect(question.exists()).toBe(true);
+  });
+  it("question has a statement message", () => {
+    const statement = wrapper.find(".question .statement");
+    expect(statement.text()).not.toHaveLength(0);
+  });
+  it("question has an answer area", () => {
+    const answer = wrapper.find(".question .answer");
+    expect(answer.exists()).toBe(true);
+  });
+
+  it("answer area has a yes reply", () => {
+    const reply = wrapper.find("#answer-1__reply--Yes");
+    expect(reply.exists()).toBe(true);
+  });
+
+  it("answer area has a no reply", () => {
+    const reply = wrapper.find("#answer-1__reply--No");
+    expect(reply.exists()).toBe(true);
+  });
+
+  it("replying yes shows question as answered", async () => {
+    const reply = wrapper.find("#answer-1__reply--Yes");
+    await reply.trigger("click");
+    expect(wrapper.find("#one").text()).toContain("✅");
+  });
+
+  it("replies has labels", () => {
+    const replies = wrapper.findAll(".question .answer input[name='reply']");
+    const labels = wrapper.findAll(".question .answer label");
+    expect(replies.length).toBe(labels.length);
+  });
+
+  // it displays a question with a replied answer as answered
+});
+
+// it renders all fields
 
 describe("Name", () => {
   it("Has first name input field", () => {
