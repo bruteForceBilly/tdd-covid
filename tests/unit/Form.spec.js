@@ -58,7 +58,7 @@ describe("Questions", () => {
   it("replying yes shows question as answered", async () => {
     const reply = wrapper.find("#answer-1__reply--Yes");
     await reply.trigger("click");
-    expect(wrapper.find("#one").text()).toContain("✅");
+    expect(wrapper.find("#one").text()).toContain("answered");
   });
 
   it("replies has labels", () => {
@@ -67,7 +67,19 @@ describe("Questions", () => {
     expect(replies.length).toBe(labels.length);
   });
 
-  // it displays a question with a replied answer as answered
+  // Questions Field
+
+  // it has a question DONE
+  // it question has statement message DONE
+  // it question has an answer area DONE
+  // it answer area has a yes reply DONE
+  // it answer area has a no reply DONE
+  // it displays a question with a replied answer as answered DONE
+  // it only display one question at a time as asking
+  // it initially displays the first question of all question as asking
+  // it following questions which has not yet been answered are hidden
+  // it displays warning message if a question with mandatory positive reply in answered negative
+  // it disables all answer areas if a question with mandatory positive reply in answered negative
 });
 
 // it renders all fields

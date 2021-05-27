@@ -26,7 +26,7 @@
                 v-model="question.answer"
               />
             </span>
-            <span v-if="question.answer" style="float: right"> ✅ </span>
+            <span v-if="question.answer" style="float: right"> answered </span>
           </div>
         </article>
       </fieldset>
