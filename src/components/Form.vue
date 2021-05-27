@@ -23,46 +23,8 @@
 </template>
 
 <script>
-const regex = {
-  email: {
-    DOMAIN_NAME: /(?<=@)[^.]+(?=\.|(?=$))/,
-    LOCAL_PART: /((?<!@)^(\w+|\.)+)/,
-    SPECIAL: /[^a-zA-Z\x7f-\xff]/g,
-    TLD: /(\.+\w+)?(\.+\w+)$/,
-  },
-  phone: {
-    COUNTRY_CODE: /^(?<prefix>\+|00)(?<country>[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)?/g,
-    INTERNATIONAL_PHONE_NUMBER: /^(?<prefix>\+|00)(?<country>[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)(?:\(0\))?(?<number>\d{6,14})$/,
-    LOCAL_PHONE_NUMBER: /^0+\d{9}$/,
-  },
-};
-
-const emailMissingStringParams = [
-  [/@/g, "Email address", "@"],
-  [regex.email.DOMAIN_NAME, "Email address", "domain name"],
-  [regex.email.TLD, "Email address", "top level domain"],
-  [regex.email.LOCAL_PART, "Email address", "local part"],
-];
-
-const phoneMissingStringParams = [
-  [/^0|\+/, "Phone number", "charachter: number must start with 0 or +"],
-];
-
-const emailIllegalStringParams = [
-  [/\s/, "Email address", "white space"],
-  [/\.$/, "Email address", "address ends with dot"],
-  [/\.(?=@)/, "Email address", "local part ends with dot"],
-  [/^\./, "Email address", "address starts with dot"],
-  [/\.\./, "Email address", "has two consecutive dots"],
-  [/@.*?(@)/, "Email address", "has multiple @ symbols"],
-  [/'|"/, "Email address", "quotation marks"],
-  [/(?<=@)[^.]+_/, "Email address", "underscore"],
-];
-
-Object.freeze(regex);
-Object.freeze(emailMissingStringParams);
-Object.freeze(emailMissingStringParams);
-Object.freeze(emailIllegalStringParams);
+import { regex } from "@/utils/regex.js";
+import * as rules from "@/utils/rules.js";
 
 export default {
   name: "Form",
@@ -80,7 +42,6 @@ export default {
             ? `${target} has unallowed characters: ${string}`
             : `${target} has unallowed characters`,
       },
-      email: null,
       fields: [
         {
           id: "first-name",
@@ -107,27 +68,15 @@ export default {
           errors: this.phoneErrors,
         },
       ],
-      firstName: null,
-      lastName: null,
-      isInputActive: false,
-      phoneDigits: null,
-      r: regex,
-      isMissing: {
-        email: emailMissingStringParams,
-        phone: phoneMissingStringParams,
-      },
-      isIllegal: {
-        email: emailIllegalStringParams,
-      },
     };
   },
   methods: {
     getFormatPhoneNumber(value) {
-      if (this.activeInput == "phone" && value) {
-        return value;
-      } else if (value) {
+      if (this.activeInput == "phone" && value) return value;
+
+      if (value) {
         let res = null;
-        let intPhoneMatch = this.r.phone.INTERNATIONAL_PHONE_NUMBER.exec(value);
+        let intPhoneMatch = regex.phone.INTERNATIONAL_PHONE_NUMBER.exec(value);
         if (intPhoneMatch) {
           let { prefix, country, number } = intPhoneMatch.groups;
           prefix = prefix.replace(/^0{2}/g, "+");
@@ -142,7 +91,7 @@ export default {
       }
     },
     setFormatPhoneNumber(value) {
-      let intPhoneMatch = this.r.phone.INTERNATIONAL_PHONE_NUMBER.exec(value);
+      let intPhoneMatch = regex.phone.INTERNATIONAL_PHONE_NUMBER.exec(value);
       if (!intPhoneMatch) return value;
       let { prefix, country, number } = intPhoneMatch.groups;
       return prefix + country + number.replace(/^0/g, "");
@@ -180,11 +129,10 @@ export default {
 
       const fields = {
         email: () => {
-          this.isMissing.email.forEach((params) => {
+          rules.missingString.email.forEach((params) => {
             return this.checkMissingString(value, params);
           });
-
-          this.isIllegal.email.forEach((params) => {
+          rules.illegalString.email.forEach((params) => {
             return this.checkIllegalString(value, params);
           });
 
@@ -203,7 +151,7 @@ export default {
             this.errorMessages.tooShort("First name")
           );
           this.handleError(
-            this.errorIllegalString(value, this.r.email.SPECIAL),
+            this.errorIllegalString(value, regex.email.SPECIAL),
             this.errorMessages.illegalCharacter("First name")
           );
         },
@@ -215,13 +163,13 @@ export default {
           );
 
           this.handleError(
-            this.errorIllegalString(value, this.r.email.SPECIAL),
+            this.errorIllegalString(value, regex.email.SPECIAL),
             this.errorMessages.illegalCharacter("Last name")
           );
         },
 
         phone: () => {
-          this.isMissing.phone.forEach((params) => {
+          rules.missingString.phone.forEach((params) => {
             return this.checkMissingString(value, params);
           });
 
@@ -236,7 +184,7 @@ export default {
           );
 
           this.handleError(
-            this.errorIllegalString(value, /(?<!^)[^\d\s]/g),
+            this.errorIllegalString(value, /(?<!^)[^\d\s()]/g),
             this.errorMessages.illegalCharacter("Phone number")
           );
         },
@@ -255,41 +203,22 @@ export default {
       return (this.errors = this.errors.filter((cv) => !cv.includes(err)));
     },
     errorMissingString(value, q) {
-      let res = null;
+      if (!value || value.length === 0) return null;
       let r = new RegExp(q);
-
-      if (value.length > 0) {
-        res = !r.test(value);
-      }
-
-      return res;
+      return !r.test(value);
     },
-
     errorTooShort(value, limit) {
-      let res = null;
-      if (value != null) {
-        value.length < limit && value.length >= 1
-          ? (res = true)
-          : (res = false);
-      }
-      return res;
+      if (!value) return null;
+      return value.length < limit && value.length >= 1 ? true : false;
     },
-
     errorTooLong(value, limit) {
-      let res = null;
-      if (value != null) {
-        value.length > limit ? (res = true) : (res = false);
-      }
-      return res;
+      if (!value) return null;
+      return value.length > limit ? true : false;
     },
-
     errorIllegalString(value, q) {
-      let res = null;
+      if (!value) return null;
       let r = new RegExp(q);
-      if (r.test(value)) {
-        res = true;
-      }
-      return res;
+      return r.test(value) ? true : null;
     },
   },
 };
