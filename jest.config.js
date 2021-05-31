@@ -10,5 +10,4 @@ module.exports = {
     ".*\\.(vue)$": "vue-jest",
     ".*\\.(js)$": "babel-jest",
   },
-  transformIgnorePatterns: ["/node_modules/(?!@babel)"],
 };

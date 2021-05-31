@@ -1,17 +1,25 @@
 import { configFactory, wrapperFactory } from "./utils.js";
-import Form from "@/components/Form.vue";
+import Component from "@/components/Form.vue";
+
 let wrapper, config;
 
 beforeEach(() => {
   config = {
     propsData: {},
   };
-  wrapper = wrapperFactory(Form, configFactory(config));
+  wrapper = wrapperFactory(Component, configFactory(config));
 });
 
 afterEach(() => {
   wrapper.destroy();
 });
+
+const completeQuestionnaire = async () => {
+  const questionIds = wrapper.vm._data.questions.map((q) => q.id);
+  for (const id of questionIds) {
+    await wrapper.find(`#${id}a2`).trigger("click");
+  }
+};
 
 describe("Form.vue", () => {
   it("Is a Vvue instance", () => {
@@ -21,69 +29,19 @@ describe("Form.vue", () => {
     const form = wrapper.find("form");
     expect(form.exists()).toBe(true);
   });
-  it("Has a fieldset named questions", () => {
-    const questions = wrapper.find("fieldset[name='questions']");
-    expect(questions.exists()).toBe(true);
+
+  it("Shows contact field upon isCompleted being set to true", async () => {
+    await wrapper.setData({ isCompleted: true });
+    await expect(wrapper.find("fieldset[name='contact']").exists()).toBe(true);
   });
-  it("Has a fieldset named contact", () => {
-    const contactFieldset = wrapper.find("fieldset[name='contact']");
-    expect(contactFieldset.exists()).toBe(true);
+
+  it("Hides contact field upon isCompleted being set to false", async () => {
+    await wrapper.setData({ isCompleted: false });
+    await expect(wrapper.find("fieldset[name='contact']").exists()).toBe(false);
   });
 });
 
-describe("Questions", () => {
-  it("Has a question", () => {
-    const question = wrapper.find("fieldset[name='questions'] .question");
-    expect(question.exists()).toBe(true);
-  });
-  it("question has a statement message", () => {
-    const statement = wrapper.find(".question .statement");
-    expect(statement.text()).not.toHaveLength(0);
-  });
-  it("question has an answer area", () => {
-    const answer = wrapper.find(".question .answer");
-    expect(answer.exists()).toBe(true);
-  });
-
-  it("answer area has a yes reply", () => {
-    const reply = wrapper.find("#answer-1__reply--Yes");
-    expect(reply.exists()).toBe(true);
-  });
-
-  it("answer area has a no reply", () => {
-    const reply = wrapper.find("#answer-1__reply--No");
-    expect(reply.exists()).toBe(true);
-  });
-
-  it("replying yes shows question as answered", async () => {
-    const reply = wrapper.find("#answer-1__reply--Yes");
-    await reply.trigger("click");
-    expect(wrapper.find("#one").text()).toContain("answered");
-  });
-
-  it("replies has labels", () => {
-    const replies = wrapper.findAll(".question .answer input[name='reply']");
-    const labels = wrapper.findAll(".question .answer label");
-    expect(replies.length).toBe(labels.length);
-  });
-
-  // Questions Field
-
-  // it has a question DONE
-  // it question has statement message DONE
-  // it question has an answer area DONE
-  // it answer area has a yes reply DONE
-  // it answer area has a no reply DONE
-  // it displays a question with a replied answer as answered DONE
-  // it only display one question at a time as asking
-  // it initially displays the first question of all question as asking
-  // it following questions which has not yet been answered are hidden
-  // it displays warning message if a question with mandatory positive reply in answered negative
-  // it disables all answer areas if a question with mandatory positive reply in answered negative
-});
-
-// it renders all fields
-
+/*
 describe("Name", () => {
   it("Has first name input field", () => {
     expect(
@@ -283,3 +241,4 @@ describe("Phone", () => {
     );
   });
 });
+*/

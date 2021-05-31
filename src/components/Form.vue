@@ -1,37 +1,9 @@
 <template>
   <div>
     <form>
-      <fieldset name="questions">
-        <legend>Covid-19 Health Check Questions</legend>
-        <article
-          v-for="question in questions"
-          :key="'question-' + question.id"
-          :id="question.id"
-          class="question"
-        >
-          <p class="statement">
-            {{ question.statement }}
-          </p>
-          <div class="answer">
-            <span
-              v-for="reply in question.replies"
-              :key="reply.label + reply.id"
-            >
-              <label> {{ reply.label }} </label>
-              <input
-                :id="`answer-${reply.id}__reply--${reply.label}`"
-                type="radio"
-                name="reply"
-                :value="reply.value"
-                v-model="question.answer"
-              />
-            </span>
-            <span v-if="question.answer" style="float: right"> answered </span>
-          </div>
-        </article>
-      </fieldset>
+      <TheQuestions v-on:isCompleted="isCompleted = $event" />
 
-      <fieldset name="contact">
+      <fieldset v-if="isCompleted" name="contact">
         <legend>Contact information</legend>
         <p v-for="field in fields" :key="field.id">
           <label :for="field.id"> {{ field.label }} </label>
@@ -55,12 +27,16 @@
 <script>
 import { regex } from "@/utils/regex.js";
 import * as rules from "@/utils/rules.js";
+import TheQuestions from "./TheQuestions.vue";
 
 export default {
   name: "Form",
-  inheritAttrs: false,
+  components: {
+    TheQuestions,
+  },
   data() {
     return {
+      isCompleted: false,
       activeInput: null,
       errors: [],
       errorMessages: {
@@ -72,26 +48,6 @@ export default {
             ? `${target} has unallowed characters: ${string}`
             : `${target} has unallowed characters`,
       },
-      questions: [
-        {
-          id: "one",
-          statement:
-            "Does one of your household members currently have a fever or shortness of breath complaints?",
-          answer: null,
-          replies: [
-            {
-              id: "1",
-              label: "Yes",
-              value: true,
-            },
-            {
-              id: "1",
-              label: "No",
-              value: false,
-            },
-          ],
-        },
-      ],
       fields: [
         {
           id: "first-name",
@@ -121,9 +77,6 @@ export default {
     };
   },
   methods: {
-    log(msg) {
-      return console.log("log", msg);
-    },
     getFormatPhoneNumber(value) {
       if (this.activeInput == "phone" && value) return value;
 
