@@ -1,34 +1,33 @@
-# tdd-covid
+# tdd-covid 🦠
 
-## Project setup
-```
-yarn install
-```
+Visitor registration vue app after test driven development method with jest.
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+### What is it?
 
-### Compiles and minifies for production
-```
-yarn build
-```
+This project primarily is an exploration of building an app with test driven development with vue and jest while shunning dependencies. As society opens up more and more from lockdown, I notice that many cafés and restaurants have started to use visitor registration apps, where visitors can can notify if they have any Covid-19 symptoms and give their contact information, see [example](https://bezoeker.app/). I thought it would be a pretty neat and fun project to build, as the project has good scope definition, yet some intricacies with form validation that could easily get hairy to code, and therefore helped by the red-green-blue process in tdd.
 
-### Run your unit tests
+As the project progresses, it might become a blueprint for a free software product restaurateurs could self host.
+
+#### Project setup
+
 ```
-yarn test:unit
+npm install
 ```
 
-### Run your end-to-end tests
+#### Compiles and hot-reload for development
+
 ```
-yarn test:e2e
+npm run serve
 ```
 
-### Lints and fixes files
+#### Compile for production
+
 ```
-yarn lint
+npm run build
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+#### Run your unit tests
+
+```
+npm run test:unit
+```
